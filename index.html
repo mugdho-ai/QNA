@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Swipeable Question Flow</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: #f3f4f6;
+      }
+      .container {
+        width: 100%;
+        max-width: 600px;
+        overflow: hidden;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      .progress {
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .progress-bar {
+        height: 100%;
+        width: 0;
+        background: #3b82f6;
+        transition: width 0.3s;
+      }
+      .slides {
+        display: flex;
+        transition: transform 0.4s ease;
+        width: 100%;
+      }
+      .slide {
+        min-width: 100%;
+        flex-shrink: 0;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+      .slide h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .options button {
+        margin: 0.5rem;
+        padding: 0.8rem 1.2rem;
+        border: none;
+        border-radius: 8px;
+        background: #3b82f6;
+        color: white;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.3s;
+      }
+      .options button:hover {
+        background: #2563eb;
+      }
+      @media (max-width: 480px) {
+        .slide h2 {
+          font-size: 1.2rem;
+        }
+        .options button {
+          width: 100%;
+          font-size: 0.9rem;
+          padding: 0.7rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="progress"><div class="progress-bar"></div></div>
+      <div class="slides" id="slides"></div>
+    </div>
+
+    <script>
+      const QUESTIONS = [
+        {
+          q: "What is your favorite color?",
+          options: ["Red", "Blue", "none"],
+        },
+        {
+          q: "Do you want to kiss me",
+          options: ["yes", "for sure", "skip"],
+        },
+        {
+          q: "so you want to kiss me?",
+          options: ["idk", "yes", "no"],
+        },
+        {
+          q: "so you are interested!",
+          options: ["idk", "yes", "no"],
+        },
+      ];
+
+      const slidesEl = document.getElementById("slides");
+      const progressBar = document.querySelector(".progress-bar");
+      let current = 0;
+      let answers = [];
+
+      function renderSlides() {
+        slidesEl.innerHTML = "";
+        QUESTIONS.forEach((item, i) => {
+          const slide = document.createElement("div");
+          slide.className = "slide";
+          slide.innerHTML = `<h2>${
+            item.q
+          }</h2><div class='options'>${item.options
+            .map(
+              (opt) =>
+                `<button onclick=\"selectAnswer(${i},'${opt}')\">${opt}</button>`
+            )
+            .join("")}</div>`;
+          slidesEl.appendChild(slide);
+        });
+        const endSlide = document.createElement("div");
+        endSlide.className = "slide";
+        endSlide.innerHTML = `<h2>fuck you!</h2><p>Buri, that's rude😡 ${answers.join(
+          ", "
+        )}</p>`;
+        slidesEl.appendChild(endSlide);
+      }
+
+      function updateSlide() {
+        slidesEl.style.transform = `translateX(-${current * 100}%)`;
+        progressBar.style.width = `${(current / QUESTIONS.length) * 100}%`;
+      }
+
+      function selectAnswer(i, opt) {
+        answers[i] = opt;
+        if (current < QUESTIONS.length) {
+          current++;
+          updateSlide();
+        }
+      }
+
+      let startX = 0;
+      slidesEl.addEventListener(
+        "touchstart",
+        (e) => (startX = e.touches[0].clientX)
+      );
+      slidesEl.addEventListener("touchend", (e) => {
+        let diff = e.changedTouches[0].clientX - startX;
+        if (diff > 50 && current > 0) {
+          current--;
+          updateSlide();
+        }
+        if (diff < -50 && current < QUESTIONS.length) {
+          current++;
+          updateSlide();
+        }
+      });
+
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" && current < QUESTIONS.length) {
+          current++;
+          updateSlide();
+        }
+        if (e.key === "ArrowLeft" && current > 0) {
+          current--;
+          updateSlide();
+        }
+      });
+
+      renderSlides();
+      updateSlide();
+    </script>
+  </body>
+</html>
